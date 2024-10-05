@@ -35,7 +35,6 @@ TORCH_CUDA_ARCH_LIST=""
 
 CMAKE_C_COMPILER=$(which mpicc) CMAKE_CXX_COMPILER=$(which mpicxx) CMAKE_Fortran_COMPILER=$(which ftn)
 
-cd pytorch-fortran
 BUILD_PATH=$(pwd -P)/gnu/
 INSTALL_PATH=${1:-${torchdir}/torch/}
 mkdir -p $BUILD_PATH/build_proxy $BUILD_PATH/build_fortproxy $BUILD_PATH/build_example

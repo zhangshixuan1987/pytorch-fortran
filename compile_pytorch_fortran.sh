@@ -23,10 +23,15 @@
 set -e
 
 source .env_mach_specific.sh
+
 python="/global/common/software/e3sm/anaconda_envs/base/envs/e3sm_unified_1.10.0_pm-cpu/lib/python3.10"
+
 torchdir="/global/homes/z/zhan391/.conda/envs/pytorch/lib/python3.10/site-packages"
+
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${torchdir}/torch/lib"
+
 export PYTHONPATH="${python}/site-packages:${torchdir}"
+
 CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}/bin/cmake;${torchdir}/torch/share/cmake;${topdir}/pybind11/share/cmake"
 
 CONFIG=Release
@@ -35,7 +40,7 @@ TORCH_CUDA_ARCH_LIST=""
 
 CMAKE_C_COMPILER=$(which mpicc) CMAKE_CXX_COMPILER=$(which mpicxx) CMAKE_Fortran_COMPILER=$(which ftn)
 
-BUILD_PATH=$(pwd -P)/gnu/
+BUILD_PATH=$(pwd -P)/gnu
 INSTALL_PATH=${1:-${torchdir}/torch/}
 mkdir -p $BUILD_PATH/build_proxy $BUILD_PATH/build_fortproxy $BUILD_PATH/build_example
 # c++ wrappers 
@@ -64,7 +69,3 @@ mkdir -p $BUILD_PATH/build_proxy $BUILD_PATH/build_fortproxy $BUILD_PATH/build_e
     cmake --build . --parallel
     make install
 )
-
-#link lib to torch lib dir
-ln -sf ${PWD}/gnu/build_proxy/libpytorch_proxy.so $torchdir
-ln -sf ${PWD}/gnu/build_fortproxy/libpytorch_fort_proxy.so $torchdir

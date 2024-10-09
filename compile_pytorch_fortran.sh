@@ -24,29 +24,33 @@ set -e
 
 source .env_mach_specific.sh
 
-python="/global/common/software/e3sm/anaconda_envs/base/envs/e3sm_unified_1.10.0_pm-cpu/lib/python3.10"
+source /global/common/software/e3sm/anaconda_envs/base/etc/profile.d/conda.sh
+conda activate e3sm_unified_1.10.0_pm-cpu
+export PYTHON_VERSION=3.10.14
 
-torchdir="/global/homes/z/zhan391/.conda/envs/pytorch/lib/python3.10/site-packages"
+rm -rvf gnu 
 
-export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${torchdir}/torch/lib"
+#torchdir="/global/homes/z/zhan391/.conda/envs/pytorch/lib/python3.8/site-packages"
+#torchdir="/pscratch/sd/z/zhan391/SEACROGS_project/e3sm_model/machine_learning/pytorch/2.4.1/pytorch"
+torchdir="/global/homes/z/zhan391/.conda/envs"
 
-export PYTHONPATH="${python}/site-packages:${torchdir}"
-
-CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}/bin/cmake;${torchdir}/torch/share/cmake;${topdir}/pybind11/share/cmake"
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/lib:/usr/lib64:${torchdir}/pytorch/torch/lib"
+#export PYTHONPATH="/global/common/software/e3sm/anaconda_envs/base/envs/e3sm_unified_1.10.0_pm-cpu/lib/python3.10/site-packages:${torchdir}/pytorch/torch/lib/python3.10/site-packages"
+#CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}/bin/cmake;${torchdir}/pytorch/torch/share/cmake;${torchdir}/pytorch/torch/lib/python3.10/site-packages/pybind11/share/cmake"
+CMAKE_PREFIX_PATH="${torchdir}/pytorch/torch/share/cmake;${torchdir}/pytorch/torch/lib/python3.10/site-packages/pybind11/share/cmake"
 
 CONFIG=Release
 OPENACC=0
-TORCH_CUDA_ARCH_LIST=""
-
 CMAKE_C_COMPILER=$(which mpicc) CMAKE_CXX_COMPILER=$(which mpicxx) CMAKE_Fortran_COMPILER=$(which ftn)
+CMAKE_CXX_FLAGS="-lstdc++"
 
-BUILD_PATH=$(pwd -P)/gnu
-INSTALL_PATH=${1:-${torchdir}/torch/}
+BUILD_PATH=$(pwd -P)/gnu/
+INSTALL_PATH=${1:-${torchdir}/pytorch/torch/}
 mkdir -p $BUILD_PATH/build_proxy $BUILD_PATH/build_fortproxy $BUILD_PATH/build_example
 # c++ wrappers 
 (
     cd $BUILD_PATH/build_proxy 
-    cmake -DOPENACC=$OPENACC -DCMAKE_BUILD_TYPE=$CONFIG -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH -DCMAKE_CXX_COMPILER=$CMAKE_CXX_COMPILER -DTORCH_CUDA_ARCH_LIST=$TORCH_CUDA_ARCH_LIST ../../src/proxy_lib 
+    cmake -DOPENACC=$OPENACC -DCMAKE_BUILD_TYPE=$CONFIG -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH -DCMAKE_CXX_COMPILER=$CMAKE_CXX_COMPILER -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} -DTORCH_CUDA_ARCH_LIST=$TORCH_CUDA_ARCH_LIST ../../src/proxy_lib 
 
     cmake --build . --parallel
     make install
